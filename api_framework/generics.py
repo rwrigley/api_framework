@@ -51,7 +51,7 @@ class GenericAPIController:
         return modelselect
 
     def get_object(self, req, *args, **kwargs):
-        modelselect = self.filter_modelselect(self.get_model_select())
+        modelselect = self.filter_modelselect(req, self.get_model_select())
         # modelselect = self.prefetch_modelselect(modelselect)
 
         # Perform the lookup filtering.
