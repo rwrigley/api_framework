@@ -29,24 +29,21 @@ class GenericAPIController:
         return self.schema_class
 
     def get_prefetch(self):
-        return self.prefetch 
+        return self.prefetch
 
     def get_schema(self, *args, **kwargs):
         schema_class = self.get_schema_class()
         kwargs['context'] = self.get_schema_context()
         return schema_class(*args, **kwargs)
-    
-    def get_schema_context(self):
-        return {
-            'controller': self
-        }
 
-    def filter_modelselect(self, modelselect):
+    def get_schema_context(self):
+        return {'controller': self}
+
+    def filter_modelselect(self, req, modelselect):
         for backend in list(self.filter_backends):
-            modelselect = backend().filter_modelselect(self.request,
-                                                       modelselect, self)
+            modelselect = backend().filter_modelselect(req, modelselect, self)
         return modelselect
-    
+
     def prefetch_modelselect(self, modelselect):
         prefetch = self.get_prefetch()
         if prefetch:
@@ -81,4 +78,3 @@ class GenericAPIController:
     def check_object_permissions(self, req, obj):
         import warnings
         warnings.warn('Obj permission not implemented yet')
-
