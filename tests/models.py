@@ -23,3 +23,9 @@ class Lineitem(pw.Model):
 
     class Meta:
         database = proxy
+
+class Book(pw.Model):
+    author = pw.CharField()
+    title = pw.CharField()
+    class Meta:
+        database = proxy

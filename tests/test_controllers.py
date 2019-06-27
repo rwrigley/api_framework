@@ -5,8 +5,8 @@ from playhouse import test_utils
 
 from api_framework.controllers import ListAPIController, RetreiveAPIController
 
-from .models import Invoice, Lineitem, proxy
-from .schemas import InvoiceSchema, LineitemSchema
+from .models import Invoice, Lineitem, proxy, Book
+from .schemas import InvoiceSchema, LineitemSchema, BookSchema
 
 
 def test_fk(db):
@@ -16,7 +16,7 @@ def test_fk(db):
     class LineitemController(ListAPIController):
         modelselect = Lineitem
         schema_class = LineitemSchema
-        prefetch = (Invoice,)
+        prefetch = (Invoice, )
 
     Lineitem.create(invoice=Invoice.create(number='1'), name='Foo', amount=432)
     Lineitem.create(invoice=Invoice.create(number='2'), name='Bar', amount=200)
@@ -37,6 +37,7 @@ def test_fk(db):
 
     assert counter.count == 2
 
+
 def test_list_fk(db):
     proxy.initialize(db)
     db.create_tables([Lineitem, Invoice])
@@ -52,8 +53,6 @@ def test_list_fk(db):
     Lineitem.create(invoice=invoice, name='Shaft', amount=3.00)
     Lineitem.create(invoice=invoice, name='Lever', amount=4.00)
 
-
-
     req = mock.Mock()
     resp = mock.Mock()
 
@@ -68,3 +67,26 @@ def test_list_fk(db):
         assert len(lineitems) == 4
         assert lineitems[0]['name'] == 'Sproket'
     assert counter.count == 2
+
+
+def test_multi_field_lookup(db):
+    proxy.initialize(db)
+    db.create_tables([Book])
+
+    class BookController(RetreiveAPIController):
+        modelselect = Book
+        schema_class = BookSchema
+
+        def get_object(self, req, title, author):
+            return Book.select().where(Book.title==title, Book.author==author).get()
+
+    book = Book.create(title='Foo', author='Bar')
+
+    req = mock.Mock()
+    resp = mock.Mock()
+
+    controller = BookController()
+    controller.on_get(req, resp, title='Foo', author='Bar')
+    results = json.loads(resp.body)
+    assert results['title'] == 'Foo'
+    assert results['author'] == 'Bar'
