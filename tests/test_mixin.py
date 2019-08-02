@@ -7,7 +7,7 @@ import pytest
 from api_framework.generics import GenericAPIController
 
 from api_framework.mixins import (CreateModelMixin, DestroyModelMixin,
-                                  ListModelMixin, RetreiveModelMixin,
+                                  ListModelMixin, RetrieveModelMixin,
                                   UpdateModelMixin)
 
 from .models import Job, proxy
@@ -57,11 +57,11 @@ def test_create_model(db):
     assert Job.get().number == '1'
 
 
-def test_retreive_model(db):
+def test_retrieve_model(db):
     proxy.initialize(db)
     db.create_tables([Job])
 
-    class JobRetreiveAPIController(GenericAPIController, RetreiveModelMixin):
+    class JobRetrieveAPIController(GenericAPIController, RetrieveModelMixin):
         modelselect = Job
         schema_class = JobSchema
 
@@ -69,8 +69,8 @@ def test_retreive_model(db):
     resp = mock.Mock()
     job = Job.create(number='1')
 
-    ctlr = JobRetreiveAPIController()
-    ctlr.retreive(req, resp, id=1)
+    ctlr = JobRetrieveAPIController()
+    ctlr.retrieve(req, resp, id=1)
     assert not isinstance(resp.body, mock.Mock)
     result = json.loads(resp.body)
     assert result['number'] == '1'

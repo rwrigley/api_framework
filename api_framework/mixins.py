@@ -34,8 +34,8 @@ class CreateModelMixin:
         resp.body = result
 
 
-class RetreiveModelMixin:
-    def retreive(self, req, resp, *args, **kwargs):
+class RetrieveModelMixin:
+    def retrieve(self, req, resp, *args, **kwargs):
         instance = self.get_object(req, *args, **kwargs)
         schema = self.get_schema()
         results, errors = schema.dumps(instance)
