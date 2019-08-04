@@ -3,7 +3,7 @@ from unittest import mock
 
 from playhouse import test_utils
 
-from api_framework.controllers import ListAPIController, RetreiveAPIController
+from api_framework.controllers import ListAPIController, RetrieveAPIController
 
 from .models import Invoice, Lineitem, proxy, Book
 from .schemas import InvoiceSchema, LineitemSchema, BookSchema
@@ -42,7 +42,7 @@ def test_list_fk(db):
     proxy.initialize(db)
     db.create_tables([Lineitem, Invoice])
 
-    class InvoiceController(RetreiveAPIController):
+    class InvoiceController(RetrieveAPIController):
         modelselect = Invoice
         schema_class = InvoiceSchema
         # prefetch = (Lineitem,)
@@ -73,7 +73,7 @@ def test_multi_field_lookup(db):
     proxy.initialize(db)
     db.create_tables([Book])
 
-    class BookController(RetreiveAPIController):
+    class BookController(RetrieveAPIController):
         modelselect = Book
         schema_class = BookSchema
 
