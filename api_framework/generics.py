@@ -1,5 +1,6 @@
 import peewee
 import marshmallow
+from .pagination import PageNumberPagination
 
 
 class GenericAPIController:
@@ -9,6 +10,7 @@ class GenericAPIController:
     lookup_url_kwarg = None
     filter_backends = []
     prefetch = None
+    pagination_class = PageNumberPagination
 
     def get_model_select(self):
         assert self.modelselect is not None, (
@@ -80,3 +82,32 @@ class GenericAPIController:
     def check_object_permissions(self, req, obj):
         import warnings
         warnings.warn('Obj permission not implemented yet')
+
+    @property
+    def paginator(self):
+        """
+        The paginator instance associated with the view, or `None`.
+        """
+        if not hasattr(self, '_paginator'):
+            if self.pagination_class is None:
+                self._paginator = None
+            else:
+                self._paginator = self.pagination_class()
+        return self._paginator
+
+    def paginate_modelselect(self, request, modelselect):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        if self.paginator is None:
+            return None
+        return self.paginator.paginate_modelselect(modelselect,
+                                                request,
+                                                view=self)
+
+    def get_paginated_response(self, data):
+        """
+        Return a paginated style `Response` object for the given output data.
+        """
+        assert self.paginator is not None
+        return self.paginator.get_paginated_response(data)

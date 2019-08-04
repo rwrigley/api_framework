@@ -10,16 +10,17 @@ class ListModelMixin:
         ms = self.filter_modelselect(req, self.get_model_select())
         ms = self.prefetch_modelselect(ms)
         # TODO Add pagination
-        # page = self.paginate_modelselect(modelselect)
-        # if page is not None:
-        #     result,  = self.get_schema(page, many=True)
-        #     return self.get_paginated_response(marshal)
+        page = self.paginate_modelselect(req, ms)
+        schema = self.get_schema(many=True)
+        if page is not None:
+            data, errors = schema.dump(page)
+            resp.body = self.get_paginated_response(data)
 
-        # marshal, errors = self.schema().dumps(ms, many=True)
-        result, errors = self.get_schema().dumps(ms, many=True)
-        if errors:
-            raise NotImplementedError('Error handling not implemented')
-        resp.body = result
+        else:
+            data, errors = self.get_schema().dumps(ms, many=True)
+            if errors:
+                raise NotImplementedError('Error handling not implemented')
+            resp.body = data
 
 
 class CreateModelMixin:
