@@ -9,26 +9,21 @@ from .models import Invoice, Lineitem, proxy, Book
 from .schemas import InvoiceSchema, LineitemSchema, BookSchema
 
 
-def test_fk(db):
-    proxy.initialize(db)
-    db.create_tables([Lineitem, Invoice])
-
+def test_fk(build_test_client, bind_models):
+    bind_models(Lineitem, Invoice)
     class LineitemController(ListAPIController):
         modelselect = Lineitem
         schema_class = LineitemSchema
         prefetch = (Invoice, )
 
+    client = build_test_client({'/lineItems': LineitemController()})
+
     Lineitem.create(invoice=Invoice.create(number='1'), name='Foo', amount=432)
     Lineitem.create(invoice=Invoice.create(number='2'), name='Bar', amount=200)
 
-    controller = LineitemController()
-
-    req = mock.Mock()
-    resp = mock.Mock()
 
     with test_utils.count_queries() as counter:
-        controller.on_get(req, resp)
-        results = json.loads(resp.body)
+        results = client.simulate_get('/lineItems').json
         assert len(results) == 2
         foo = next(r for r in results if r['name'] == 'Foo')
         assert foo
@@ -38,9 +33,8 @@ def test_fk(db):
     assert counter.count == 2
 
 
-def test_list_fk(db):
-    proxy.initialize(db)
-    db.create_tables([Lineitem, Invoice])
+def test_list_fk(build_test_client, bind_models):
+    bind_models(Lineitem, Invoice)
 
     class InvoiceController(RetrieveAPIController):
         modelselect = Invoice
@@ -53,14 +47,10 @@ def test_list_fk(db):
     Lineitem.create(invoice=invoice, name='Shaft', amount=3.00)
     Lineitem.create(invoice=invoice, name='Lever', amount=4.00)
 
-    req = mock.Mock()
-    resp = mock.Mock()
-
-    controller = InvoiceController()
+    client = build_test_client({'/invoice/{id}': InvoiceController()})
 
     with test_utils.count_queries() as counter:
-        controller.on_get(req, resp, id=invoice.id)
-        results = json.loads(resp.body)
+        results = client.simulate_get(f'/invoice/{invoice.id}').json
         assert results['number'] == '123'
         assert isinstance(results['lineitems'], list)
         lineitems = results['lineitems']
@@ -69,9 +59,8 @@ def test_list_fk(db):
     assert counter.count == 2
 
 
-def test_multi_field_lookup(db):
-    proxy.initialize(db)
-    db.create_tables([Book])
+def test_multi_field_lookup(build_test_client, bind_models):
+    bind_models(Book)
 
     class BookController(RetrieveAPIController):
         modelselect = Book
@@ -81,12 +70,8 @@ def test_multi_field_lookup(db):
             return Book.select().where(Book.title==title, Book.author==author).get()
 
     book = Book.create(title='Foo', author='Bar')
-
-    req = mock.Mock()
-    resp = mock.Mock()
-
-    controller = BookController()
-    controller.on_get(req, resp, title='Foo', author='Bar')
-    results = json.loads(resp.body)
+    client = build_test_client({'/book/{author}/{title}': BookController()})
+    results = client.simulate_get(f'/book/Bar/Foo').json
+    assert results
     assert results['title'] == 'Foo'
     assert results['author'] == 'Bar'
