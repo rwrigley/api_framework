@@ -9,9 +9,9 @@ class ListModelMixin:
     def list(self, req, resp, *args, **kwargs):
         ms = self.filter_modelselect(req, self.get_model_select())
         ms = self.prefetch_modelselect(ms)
-        # TODO Add pagination
         page = self.paginate_modelselect(req, ms)
         schema = self.get_schema(many=True)
+        
         if page is not None:
             data, errors = schema.dump(page)
             resp.body = self.get_paginated_response(data)
