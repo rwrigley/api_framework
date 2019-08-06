@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="api_framework",
-    version="0.0.1",
+    version="0.0.2",
     author="Ryan Wrigley",
     author_email="ryan@servicefusion.com    ",
     description="REST API framework based on peewee, marshmallow, falcon",

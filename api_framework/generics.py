@@ -1,4 +1,5 @@
 import peewee
+import falcon
 import marshmallow
 from .pagination import PageNumberPagination
 
@@ -68,11 +69,10 @@ class GenericAPIController:
         filter_kwargs = {self.lookup_field: kwargs[lookup_url_kwarg]}
         modelselect = modelselect.filter(**filter_kwargs)
 
-        #TODO Move DoesNotExist errors to be caught up to raise 404
         try:
             obj = modelselect.get()
         except peewee.DoesNotExist:
-            raise NotImplementedError('Raise 404 not implemented')
+            raise falcon.HTTPNotFound()
 
         # May raise a permission denied
         self.check_object_permissions(req, obj)

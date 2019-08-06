@@ -45,7 +45,7 @@ def test_create_model(db):
         schema_class = JobSchema
 
     req = mock.Mock()
-    req.stream = '{"number": "1"}'
+    req.media = {"number": "1"}
 
     resp = mock.Mock()
 
@@ -86,7 +86,7 @@ def test_update_model(db):
         schema_class = JobSchema
 
     req = mock.Mock()
-    req.stream = '{"number":"3"}'
+    req.media = {"number":"3"}
     resp = mock.Mock()
     job = Job.create(number='2')
 

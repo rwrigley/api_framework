@@ -17,31 +17,29 @@ class ListModelMixin:
             resp.body = self.get_paginated_response(data)
 
         else:
-            data, errors = self.get_schema().dumps(ms, many=True)
-            if errors:
-                raise NotImplementedError('Error handling not implemented')
+            data, _ = self.get_schema(strict=True).dumps(ms, many=True)
             resp.body = data
 
 
 class CreateModelMixin:
     def create(self, req, resp, *args, **kwargs):
-        instance, errors = self.get_schema().loads(req.stream)
-        if errors:
-            raise NotImplementedError('Error handling not implemented')
+        try:
+            instance, _ = self.get_schema(strict=True).load(req.media)
+        except marshmallow.exceptions.ValidationError as errors:
+            raise falcon.HTTPBadRequest('Invalid payload', errors.messages)
+        except TypeError: 
+            raise falcon.HTTPBadRequest('Payload cannot be parsed as JSON')
+
         instance.save()
-        result, errors = self.get_schema().dumps(instance)
-        if errors:
-            raise NotImplementedError('Error handling not implemented')
+        result, _ = self.get_schema(strict=True).dumps(instance)
         resp.body = result
 
 
 class RetrieveModelMixin:
     def retrieve(self, req, resp, *args, **kwargs):
         instance = self.get_object(req, *args, **kwargs)
-        schema = self.get_schema()
-        results, errors = schema.dumps(instance)
-        if errors:
-            raise NotImplementedError
+        schema = self.get_schema(strict=True)
+        results, _ = schema.dumps(instance)
         resp.body = results
 
 
@@ -49,14 +47,17 @@ class UpdateModelMixin:
     def update(self, req, resp, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object(req, *args, **kwargs)
-        schema = self.get_schema(instance, partial=partial)
-        loaded, errors = schema.loads(req.stream)
-        if errors:
-            raise NotImplementedError
+        schema = self.get_schema(instance, partial=partial, strict=True)
+
+        try: 
+            loaded, _ = schema.load(req.media)
+        except marshmallow.exceptions.ValidationError as errors:
+            raise falcon.HTTPBadRequest('Invalid payload', errors.messages)
+        except TypeError: 
+            raise falcon.HTTPBadRequest('Payload cannot be parsed as JSON')
+
         loaded.save()
-        result, errors = schema.dumps(instance)
-        if errors:
-            raise NotImplementedError
+        result, _ = schema.dumps(instance)
         resp.body = result
 
 
