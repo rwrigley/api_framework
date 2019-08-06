@@ -29,12 +29,12 @@ class CreateModelMixin:
             raise falcon.HTTPBadRequest('Invalid payload', errors.messages)
         except TypeError: 
             raise falcon.HTTPBadRequest('Payload cannot be parsed as JSON')
-        self.perform_create(instance)
+        self.perform_create(instance, req)
         result, _ = self.get_schema(strict=True).dumps(instance)
         resp.body = result
         resp.status = falcon.HTTP_201
     
-    def perform_create(self, instance):
+    def perform_create(self, instance, *args):
         instance.save()
 
 
@@ -59,11 +59,11 @@ class UpdateModelMixin:
         except TypeError: 
             raise falcon.HTTPBadRequest('Payload cannot be parsed as JSON')
 
-        self.perform_update(instance)
+        self.perform_update(instance, req)
         result, _ = schema.dumps(instance)
         resp.body = result
 
-    def perform_update(self, instance):
+    def perform_update(self, instance, *args):
         instance.save()
 
 class DestroyModelMixin:
