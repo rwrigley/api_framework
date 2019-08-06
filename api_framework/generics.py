@@ -55,7 +55,6 @@ class GenericAPIController:
 
     def get_object(self, req, *args, **kwargs):
         modelselect = self.filter_modelselect(req, self.get_model_select())
-        # modelselect = self.prefetch_modelselect(modelselect)
 
         # Perform the lookup filtering.
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
@@ -70,8 +69,8 @@ class GenericAPIController:
         modelselect = modelselect.filter(**filter_kwargs)
 
         try:
-            obj = modelselect.get()
-        except peewee.DoesNotExist:
+            obj = self.prefetch_modelselect(modelselect)[0]
+        except(peewee.DoesNotExist, IndexError):
             raise falcon.HTTPNotFound()
 
         # May raise a permission denied

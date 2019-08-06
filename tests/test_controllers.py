@@ -33,13 +33,14 @@ def test_fk(build_test_client, bind_models):
     assert counter.count == 2
 
 
+
 def test_list_fk(build_test_client, bind_models):
     bind_models(Lineitem, Invoice)
 
     class InvoiceController(RetrieveAPIController):
         modelselect = Invoice
         schema_class = InvoiceSchema
-        # prefetch = (Lineitem,)
+        prefetch = (Lineitem,)
 
     invoice = Invoice.create(number='123')
     Lineitem.create(invoice=invoice, name='Sproket', amount=1.23)
