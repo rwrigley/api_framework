@@ -8,7 +8,7 @@ pytest = "*"
 yapf = "*"
 
 [packages]
-marshmallow = "==2.15.0"
+marshmallow = "==2.15.1"
 falcon = "*"
 marshmallow-peewee = "*"
 falcon-marshmallow = "*"
